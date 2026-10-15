@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaSense Dashboard</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    color: #183247;
+}
+
+header {
+    background: #073b63;
+    color: white;
+    padding: 22px 16px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 26px;
+}
+
+header p {
+    margin-bottom: 0;
+    color: #d6e9f5;
+    font-size: 13px;
+}
+
+main {
+    max-width: 1000px;
+    margin: auto;
+    padding: 16px;
+}
+
+.section-heading {
+    font-size: 20px;
+    margin: 8px 0 14px;
+}
+
+.notice {
+    padding: 12px;
+    border-radius: 8px;
+    background: #fff3cd;
+    color: #785800;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.overview {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.card, .panel {
+    background: white;
+    border: 1px solid #e0e8ef;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.03);
+}
+
+.card {
+    border-top: 4px solid #1685b5;
+}
+
+.card-label {
+    font-size: 13px;
+    color: #61788a;
+}
+
+.card-value {
+    font-size: 26px;
+    font-weight: bold;
+    margin: 12px 0 7px;
+    overflow-wrap: anywhere;
+}
+
+.card-unit {
+    font-size: 12px;
+    color: #718096;
+}
+
+.status {
+    display: inline-block;
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 20px;
+    margin-top: 10px;
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.status.good {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.panel {
+    margin-top: 17px;
+}
+
+.panel h3 {
+    font-size: 17px;
+    margin: 0 0 14px;
+}
+
+.chart-container {
+    width: 100%;
+    height: 230px;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.chart-note, .empty {
+    color: #718096;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 13px 10px;
+    border: none;
+    border-radius: 8px;
+    background: #087eaa;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button.secondary {
+    background: #e2e8f0;
+    color: #183247;
+}
+
+button.dark {
+    background: #073b63;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 440px;
+}
+
+th, td {
+    padding: 11px 8px;
+    border-bottom: 1px solid #e5edf3;
+    text-align: left;
+}
+
+th {
+    color: #52697a;
+    background: #f8fafc;
+}
+
+footer {
+    padding: 22px 12px;
+    text-align: center;
+    color: #718096;
+    font-size: 11px;
+}
+
+@media (min-width: 650px) {
+    .overview {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .buttons {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>💧 AquaSense</h1>
+    <p>Portable Water Quality Monitoring System</p>
+</header>
+
+<main>
+
+<h2 class="section-heading">Monitoring Dashboard</h2>
+
+<div class="notice">
+    DEMONSTRATION MODE: All readings are simulated.
+    This prototype is not connected to physical sensors
+    and cannot determine whether water is safe to drink.
+</div>
+
+<div class="overview">
+
+    <div class="card">
+        <div class="card-label">🧪 pH Level</div>
+        <div class="card-value" id="phValue">7.20</div>
+        <div class="card-unit">pH units</div>
+        <span class="status" id="phStatus">Not measured</span>
+    </div>
+
+    <div class="card">
+        <div class="card-label">🌊 Turbidity</div>
+        <div class="card-value" id="turbidityValue">4.50</div>
+        <div class="card-unit">NTU</div>
+        <span class="status" id="turbidityStatus">Not measured</span>
+    </div>
+
+    <div class="card">
+        <div class="card-label">⚡ Conductivity</div>
+        <div class="card-value" id="conductivityValue">420</div>
+        <div class="card-unit">µS/cm</div>
+        <span class="status" id="conductivityStatus">Not measured</span>
+    </div>
+
+    <div class="card">
+        <div class="card-label">🌡️ Temperature</div>
+        <div class="card-value" id="temperatureValue">26.4</div>
+        <div class="card-unit">°C</div>
+        <span class="status" id="temperatureStatus">Not measured</span>
+    </div>
+
+</div>
+
+<div class="panel">
+    <h3>📊 Water Quality Trends</h3>
+
+    <div class="chart-container">
+        <canvas id="chart"></canvas>
+    </div>
+
+    <p class="chart-note">
+        This chart displays simulated turbidity readings.
+        It does not represent verified treatment performance.
+    </p>
+</div>
+
+<div class="panel">
+    <h3>🕒 Latest Measurement</h3>
+
+    <div id="lastUpdated" class="empty">
+        No measurement recorded yet.
+    </div>
+
+    <div class="buttons">
+        <button onclick="updateReadings()">
+            🔄 Simulate New Reading
+        </button>
+
+        <button class="secondary" onclick="downloadCSV()">
+            📥 Download CSV Report
+        </button>
+
+        <button class="dark" onclick="resetHistory()">
+            🗑️ Clear History
+        </button>
+    </div>
+</div>
+
+<div class="panel">
+    <h3>📋 Measurement History</h3>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date and Time</th>
+                    <th>pH</th>
+                    <th>Turbidity</th>
+                    <th>Conductivity</th>
+                    <th>Temp.</th>
+                </tr>
+            </thead>
+
+            <tbody id="historyTable">
+                <tr>
+                    <td colspan="5">No measurements recorded yet.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="panel">
+    <h3>ℹ️ About AquaSense</h3>
+
+    <p class="empty">
+        AquaSense is a proposed low-cost portable system for
+        preliminary water-quality screening and wastewater
+        treatment monitoring.
+    </p>
+
+    <p class="empty">
+        Actual measurements require suitable sensors,
+        calibration and validation. These readings alone
+        cannot establish treatment effectiveness or drinking-water safety.
+    </p>
+</div>
+
+</main>
+
+<footer>
+    UFV Smart Cities Hackathon · AquaSense Prototype
+</footer>
+
+<script>
+const historyData = [];
+const maximumRecords = 20;
+
+function setStatus(id, text, type) {
+    const element = document.getElementById(id);
+    element.textContent = text;
+    element.className = "status " + type;
+}
+
+function updateReadings() {
+
+    const ph = Number((5.8 + Math.random() * 3).toFixed(2));
+    const turbidity = Number((Math.random() * 20).toFixed(2));
+    const conductivity = Math.floor(250 + Math.random() * 500);
+    const temperature = Number((22 + Math.random() * 12).toFixed(1));
+
+    document.getElementById("phValue").textContent = ph.toFixed(2);
+    document.getElementById("turbidityValue").textContent = turbidity.toFixed(2);
+    document.getElementById("conductivityValue").textContent = conductivity;
+    document.getElementById("temperatureValue").textContent = temperature.toFixed(1);
+
+    setStatus(
+        "phStatus",
+        ph < 6.5 || ph > 8.5 ? "Check pH" : "Within example range",
+        ph < 6.5 || ph > 8.5 ? "warning" : "good"
+    );
+
+    setStatus(
+        "turbidityStatus",
+        turbidity > 5 ? "Review reading" : "Lower reading",
+        turbidity > 5 ? "warning" : "good"
+    );
+
+    setStatus("conductivityStatus", "Screening only", "");
+    setStatus("temperatureStatus", "Screening only", "");
+
+    const now = new Date();
+
+    const reading = {
+        date: now.toLocaleDateString(),
+        time: now.toLocaleTimeString(),
+        ph: ph,
+        turbidity: turbidity,
+        conductivity: conductivity,
+        temperature: temperature
+    };
+
+    historyData.unshift(reading);
+
+    if (historyData.length > maximumRecords) {
+        historyData.pop();
+    }
+
+    document.getElementById("lastUpdated").textContent =
+        "Last simulated reading: " + now.toLocaleString();
+
+    renderHistory();
+    drawChart();
+}
+
+function renderHistory() {
+
+    const table = document.getElementById("historyTable");
+    table.textContent = "";
+
+    historyData.forEach(function(item) {
+
+        const row = document.createElement("tr");
+
+        const values = [
+            item.date + " " + item.time,
+            item.ph.toFixed(2),
+            item.turbidity.toFixed(2) + " NTU",
+            item.conductivity + " µS/cm",
+            item.temperature.toFixed(1) + " °C"
+        ];
+
+        values.forEach(function(value) {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+        });
+
+        table.appendChild(row);
+    });
+
+    if (historyData.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 5;
+        cell.textContent = "No measurements recorded yet.";
+
+        row.appendChild(cell);
+        table.appendChild(row);
+    }
+}
+
+function drawChart() {
+
+    const canvas = document.getElementById("chart");
+    const rect = canvas.getBoundingClientRect();
+
+    if (!rect.width || !rect.height) return;
+
+    const ratio = window.devicePixelRatio || 1;
+
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
+
+    const ctx = canvas.getContext("2d");
+    ctx.scale(ratio, ratio);
+
+    const width = rect.width;
+    const height = rect.height;
+
+    const left = 38;
+    const right = 10;
+    const top = 15;
+    const bottom = 28;
+
+    const plotWidth = width - left - right;
+    const plotHeight = height - top - bottom;
+
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.font = "11px Arial";
+    ctx.fillStyle = "#64748b";
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1;
+
+    for (let value = 0; value <= 20; value += 5) {
+
+        const y = top + plotHeight - (value / 20) * plotHeight;
+
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(width - right, y);
+        ctx.stroke();
+
+        ctx.fillText(String(value), 8, y + 4);
+    }
+
+    ctx.fillText("NTU", 8, 10);
+
+    const readings = historyData.slice().reverse();
+
+    if (readings.length === 0) {
+        ctx.fillStyle = "#64748b";
+        ctx.fillText(
+            "Tap Simulate New Reading to plot data.",
+            left + 5,
+            top + plotHeight / 2
+        );
+        return;
+    }
+
+    const points = readings.map(function(item, index) {
+
+        return {
+            x: readings.length === 1
+                ? left + plotWidth / 2
+                : left + (index / (readings.length - 1)) * plotWidth,
+
+            y: top + plotHeight -
+                (Math.min(item.turbidity, 20) / 20) * plotHeight
+        };
+    });
+
+    ctx.strokeStyle = "#087eaa";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+
+    points.forEach(function(point, index) {
+        if (index === 0) {
+            ctx.moveTo(point.x, point.y);
+        } else {
+            ctx.lineTo(point.x, point.y);
+        }
+    });
+
+    ctx.stroke();
+
+    ctx.fillStyle = "#087eaa";
+
+    points.forEach(function(point) {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("Older", left, height - 5);
+    ctx.fillText("Latest", width - 45, height - 5);
+}
+
+function downloadCSV() {
+
+    if (historyData.length === 0) {
+        alert("Please record at least one simulated reading first.");
+        return;
+    }
+
+    const rows = [
+        ["Date", "Time", "pH", "Turbidity_NTU",
+         "Conductivity_uS_cm", "Temperature_C"]
+    ];
+
+    historyData.forEach(function(item) {
+        rows.push([
+            item.date,
+            item.time,
+            item.ph,
+            item.turbidity,
+            item.conductivity,
+            item.temperature
+        ]);
+    });
+
+    const csv = rows.map(function(row) {
+        return row.join(",");
+    }).join("\n");
+
+    const blob = new Blob([csv], {
+        type: "text/csv;charset=utf-8;"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "aquasense-demo-readings.csv";
+    link.click();
+
+    setTimeout(function() {
+        URL.revokeObjectURL(url);
+    }, 1000);
+}
+
+function resetHistory() {
+
+    if (!confirm("Clear all recorded demonstration readings?")) {
+        return;
+    }
+
+    historyData.length = 0;
+
+    document.getElementById("lastUpdated").textContent =
+        "No measurements recorded yet.";
+
+    setStatus("phStatus", "Not measured", "");
+    setStatus("turbidityStatus", "Not measured", "");
+    setStatus("conductivityStatus", "Not measured", "");
+    setStatus("temperatureStatus", "Not measured", "");
+
+    renderHistory();
+    drawChart();
+}
+
+window.addEventListener("resize", drawChart);
+
+drawChart();
+</script>
+
+</body>
+</html>
